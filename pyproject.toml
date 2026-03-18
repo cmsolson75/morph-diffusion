@@ -1,0 +1,16 @@
+[project]
+name = "morphdiffusion"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "einops>=0.8.2",
+    "huggingface-hub>=1.7.1",
+    "ruff>=0.15.6",
+    "setuptools<81",
+    "soundfile>=0.13.1",
+    "stable-audio-tools>=0.0.19",
+    "torchaudio>=2.10.0",
+    "torchcodec>=0.10.0",
+]
