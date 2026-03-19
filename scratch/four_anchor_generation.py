@@ -111,10 +111,10 @@ def slerp_xy(
     y = clamp01(y)
 
     bottom = slerp(a, b, x)
-    top = slerp(c, d, x) 
+    top = slerp(c, d, x)
     return slerp(bottom, top, y)
 
-    
+
 def build_metadata(cfg: Cfg, prompt: str) -> list[dict]:
     if cfg.model_name == MODELS["small"]:
         return [
@@ -132,11 +132,13 @@ def build_metadata(cfg: Cfg, prompt: str) -> list[dict]:
         }
     ]
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-x", type=float)
     parser.add_argument("-y", type=float)
     return parser.parse_args()
+
 
 def main() -> None:
     cfg = Cfg()
@@ -167,7 +169,6 @@ def main() -> None:
     meta_c = build_metadata(cfg, cfg.prompt_c)
     meta_d = build_metadata(cfg, cfg.prompt_d)
 
-
     cond_a = model.conditioner(meta_a, device=device)
     cond_b = model.conditioner(meta_b, device=device)
     cond_c = model.conditioner(meta_c, device=device)
@@ -178,14 +179,7 @@ def main() -> None:
     prompt_c, mask_c = cond_c["prompt"]
     prompt_d, mask_d = cond_d["prompt"]
 
-    mixed_prompt = slerp_xy(
-        prompt_a,
-        prompt_b,
-        prompt_c,
-        prompt_d,
-        x=cfg.x,
-        y=cfg.y
-    )
+    mixed_prompt = slerp_xy(prompt_a, prompt_b, prompt_c, prompt_d, x=cfg.x, y=cfg.y)
     mixed_mask = mask_a | mask_b | mask_c | mask_d
 
     # Preserve all non-prompt conditioning exactly as produced by cond_a
@@ -214,6 +208,7 @@ def main() -> None:
 
     torchaudio.save("morph_output_xy.wav", output.cpu(), sample_rate)
     print("Saved morph_output_xy.wav")
+
 
 if __name__ == "__main__":
     main()

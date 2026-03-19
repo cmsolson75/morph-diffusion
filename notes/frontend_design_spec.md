@@ -20,3 +20,11 @@ Program design
 - TECH: HTML and minimal everything else - low dependency.
 - Additions
     - Model selector dropdown
+
+Language simplification
+- CFG: Call this prompt strength
+- INIT AUDIO: Need a simple way to discribe this.
+    - Higher is better for following the prompt
+    - Lower is more based on seed / init audio
+- INIT AUDIO - find way to make the UX make sense.
+- Expose SEED: this changes the 
