@@ -15,9 +15,11 @@ def postprocess_output(
     output = output.to(torch.float32)
     output = output[:, :total_samples]
     output = output / output.abs().max().clamp(min=1e-8)
+    return output
+
 
 def save_audio(path: str | Path, audio: torch.Tensor, sample_rate: int) -> Path:
-    path = Path(audio)
+    path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    torch.save(str(path), audio.cpu(), sample_rate)
+    torchaudio.save(str(path), audio.cpu(), sample_rate)
     return path

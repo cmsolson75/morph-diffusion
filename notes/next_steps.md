@@ -28,3 +28,7 @@ Config
 
 
 Prompt Morph Synthesis
+
+
+NOTES
+- I need to find a way to nicely name files - maybe just let the user do it.
