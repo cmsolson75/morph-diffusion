@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stable Audio Morph</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #0a0a0a;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --panel: #fafafa;
+      --hover: #f3f4f6;
+      --accent: #111111;
+      --danger: #b91c1c;
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      height: 100%;
+    }
+
+    body {
+      min-height: 100vh;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      border-right: 1px solid var(--border);
+      padding: 24px;
+      background: var(--panel);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .main {
+      padding: 24px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 20px;
+    }
+
+    .title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      max-width: 720px;
+    }
+
+    .section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field label {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    textarea,
+    input[type="number"],
+    input[type="text"] {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--fg);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 84px;
+      line-height: 1.45;
+    }
+
+    textarea:focus,
+    input:focus {
+      border-color: #9ca3af;
+      box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.06);
+    }
+
+    .inline-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 11px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.04s ease, opacity 0.12s ease, background 0.12s ease;
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    .primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .secondary {
+      background: #fff;
+      color: var(--fg);
+      border: 1px solid var(--border);
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .status {
+      min-height: 20px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    .xy-shell {
+      display: grid;
+      grid-template-columns: 1fr 200px;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .xy-panel,
+    .output-panel,
+    .meta-panel {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .panel-subtitle {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .xy-wrap {
+      padding: 16px;
+    }
+
+    .xy-grid {
+      position: relative;
+      width: min(100%, 700px);
+      aspect-ratio: 1 / 1;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background-image:
+        linear-gradient(to right, transparent calc(50% - 0.5px), var(--border) calc(50% - 0.5px), var(--border) calc(50% + 0.5px), transparent calc(50% + 0.5px)),
+        linear-gradient(to bottom, transparent calc(50% - 0.5px), var(--border) calc(50% - 0.5px), var(--border) calc(50% + 0.5px), transparent calc(50% + 0.5px));
+      background-color: #fcfcfc;
+      cursor: crosshair;
+      user-select: none;
+      touch-action: none;
+    }
+
+    .corner-label {
+      position: absolute;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      background: rgba(255,255,255,0.92);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 8px;
+    }
+
+    .label-a { top: 10px; left: 10px; }
+    .label-b { top: 10px; right: 10px; }
+    .label-c { bottom: 10px; left: 10px; }
+    .label-d { bottom: 10px; right: 10px; }
+
+    .cursor {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: #111;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.14);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .coord-readout {
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .coord-value {
+      display: grid;
+      gap: 4px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .coord-label {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .coord-number {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    .output-body,
+    .meta-body {
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+    }
+
+    audio {
+      width: 100%;
+    }
+
+    .download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--fg);
+      text-decoration: none;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      width: fit-content;
+    }
+
+    .download-link:hover {
+      background: var(--hover);
+    }
+
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      color: var(--muted);
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+
+    .footer-note {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 1100px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+    }
+
+    @media (max-width: 860px) {
+      .xy-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .inline-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div>
+        <h1>Stable Audio Morph</h1>
+        <div class="subtitle">
+          Four-prompt interpolation over an XY conditioning space. Minimal frontend for a FastAPI-backed research demo.
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Prompts</div>
+
+        <div class="field">
+          <label for="promptA">Prompt A</label>
+          <textarea id="promptA">short synthetic bass hit, distorted midrange, punchy transient, tight tail, sound design one-shot</textarea>
+        </div>
+
+        <div class="field">
+          <label for="promptB">Prompt B</label>
+          <textarea id="promptB">short digital glitch burst, noisy high frequency texture, sharp transient, granular tail, synthetic one-shot</textarea>
+        </div>
+
+        <div class="field">
+          <label for="promptC">Prompt C</label>
+          <textarea id="promptC">short metallic percussion hit, resonant body, crisp attack, tight decay, synthetic one-shot</textarea>
+        </div>
+
+        <div class="field">
+          <label for="promptD">Prompt D</label>
+          <textarea id="promptD">short airy noise stab, bright textured transient, spectral tail, abstract synthetic one-shot</textarea>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Generation</div>
+
+        <div class="inline-grid">
+          <div class="field">
+            <label for="steps">Steps</label>
+            <input id="steps" type="number" min="1" step="1" value="36" />
+          </div>
+          <div class="field">
+            <label for="cfg">CFG</label>
+            <input id="cfg" type="number" min="0" step="0.1" value="5.0" />
+          </div>
+        </div>
+
+        <div class="inline-grid">
+          <div class="field">
+            <label for="secondsTotal">Length (s)</label>
+            <input id="secondsTotal" type="number" min="0.1" step="0.1" value="3.0" />
+          </div>
+          <div class="field">
+            <label for="seed">Seed</label>
+            <input id="seed" type="number" step="1" value="1234" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="modelName">Model</label>
+          <input id="modelName" type="text" value="main" />
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="button-row">
+          <button id="generateBtn" class="primary">Generate</button>
+          <button id="randomizeSeedBtn" class="secondary" type="button">Random Seed</button>
+          <button id="resetXYBtn" class="secondary" type="button">Reset XY</button>
+        </div>
+        <div id="status" class="status"></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="title-row">
+        <div>
+          <div class="section-title">Control Surface</div>
+          <div class="subtitle">A=(0,0), B=(1,0), C=(0,1), D=(1,1). Drag inside the grid to update interpolation coordinates.</div>
+        </div>
+      </div>
+
+      <div class="xy-shell">
+        <section class="xy-panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">XY Interpolation Grid</div>
+              <div class="panel-subtitle">Primary interaction surface</div>
+            </div>
+          </div>
+          <div class="xy-wrap">
+            <div id="xyGrid" class="xy-grid" aria-label="XY interpolation grid">
+              <div class="corner-label label-a">A</div>
+              <div class="corner-label label-b">B</div>
+              <div class="corner-label label-c">C</div>
+              <div class="corner-label label-d">D</div>
+              <div id="cursor" class="cursor"></div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="meta-panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Coordinates</div>
+              <div class="panel-subtitle">Current interpolation state</div>
+            </div>
+          </div>
+          <div class="coord-readout">
+            <div class="coord-value">
+              <div class="coord-label">X</div>
+              <div id="xValue" class="coord-number">0.100</div>
+            </div>
+            <div class="coord-value">
+              <div class="coord-label">Y</div>
+              <div id="yValue" class="coord-number">0.000</div>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <section class="output-panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Audio Output</div>
+            <div class="panel-subtitle">Generated waveform returned by backend</div>
+          </div>
+        </div>
+        <div class="output-body">
+          <audio id="audioPlayer" controls preload="none"></audio>
+          <a id="downloadLink" class="download-link" href="#" download="morph_output_xy.wav" hidden>Download WAV</a>
+          <div id="responseMeta" class="mono"></div>
+        </div>
+      </section>
+
+      <div class="footer-note">
+        Frontend assumes a FastAPI endpoint at <span class="mono">POST /api/generate</span> returning a WAV blob and optional metadata headers.
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const state = {
+      x: 0.1,
+      y: 0.0,
+      isDragging: false,
+      audioObjectUrl: null,
+    };
+
+    const els = {
+      promptA: document.getElementById('promptA'),
+      promptB: document.getElementById('promptB'),
+      promptC: document.getElementById('promptC'),
+      promptD: document.getElementById('promptD'),
+      steps: document.getElementById('steps'),
+      cfg: document.getElementById('cfg'),
+      secondsTotal: document.getElementById('secondsTotal'),
+      seed: document.getElementById('seed'),
+      modelName: document.getElementById('modelName'),
+      generateBtn: document.getElementById('generateBtn'),
+      randomizeSeedBtn: document.getElementById('randomizeSeedBtn'),
+      resetXYBtn: document.getElementById('resetXYBtn'),
+      status: document.getElementById('status'),
+      xyGrid: document.getElementById('xyGrid'),
+      cursor: document.getElementById('cursor'),
+      xValue: document.getElementById('xValue'),
+      yValue: document.getElementById('yValue'),
+      audioPlayer: document.getElementById('audioPlayer'),
+      downloadLink: document.getElementById('downloadLink'),
+      responseMeta: document.getElementById('responseMeta'),
+    };
+
+    function clamp01(v) {
+      return Math.max(0, Math.min(1, v));
+    }
+
+    function setStatus(message, isError = false) {
+      els.status.textContent = message || '';
+      els.status.classList.toggle('error', Boolean(isError));
+    }
+
+    function updateCursor() {
+      const xPct = state.x * 100;
+      const yPct = state.y * 100;
+      els.cursor.style.left = `${xPct}%`;
+      els.cursor.style.top = `${yPct}%`;
+      els.xValue.textContent = state.x.toFixed(3);
+      els.yValue.textContent = state.y.toFixed(3);
+    }
+
+    function setXYFromPointer(clientX, clientY) {
+      const rect = els.xyGrid.getBoundingClientRect();
+      const x = clamp01((clientX - rect.left) / rect.width);
+      const y = clamp01((clientY - rect.top) / rect.height);
+      state.x = x;
+      state.y = y;
+      updateCursor();
+    }
+
+    function buildPayload() {
+      return {
+        model_name: els.modelName.value.trim() || 'main',
+        steps: Number(els.steps.value),
+        cfg: Number(els.cfg.value),
+        seconds_total: Number(els.secondsTotal.value),
+        x: state.x,
+        y: state.y,
+        seed: Number(els.seed.value),
+        prompt_a: els.promptA.value.trim(),
+        prompt_b: els.promptB.value.trim(),
+        prompt_c: els.promptC.value.trim(),
+        prompt_d: els.promptD.value.trim(),
+      };
+    }
+
+    function validatePayload(payload) {
+      if (!payload.prompt_a || !payload.prompt_b || !payload.prompt_c || !payload.prompt_d) {
+        return 'All prompts are required.';
+      }
+      if (!Number.isFinite(payload.steps) || payload.steps < 1) {
+        return 'Steps must be >= 1.';
+      }
+      if (!Number.isFinite(payload.cfg) || payload.cfg < 0) {
+        return 'CFG must be >= 0.';
+      }
+      if (!Number.isFinite(payload.seconds_total) || payload.seconds_total <= 0) {
+        return 'Length must be > 0.';
+      }
+      if (!Number.isFinite(payload.seed)) {
+        return 'Seed must be numeric.';
+      }
+      return null;
+    }
+
+    async function generateAudio() {
+      const payload = buildPayload();
+      const validationError = validatePayload(payload);
+      if (validationError) {
+        setStatus(validationError, true);
+        return;
+      }
+
+      els.generateBtn.disabled = true;
+      setStatus('Generating…');
+      els.responseMeta.textContent = '';
+
+      try {
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          let detail = `HTTP ${response.status}`;
+          const contentType = response.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const errorJson = await response.json();
+            detail = errorJson.detail || JSON.stringify(errorJson, null, 2);
+          } else {
+            const text = await response.text();
+            if (text) detail = text;
+          }
+          throw new Error(detail);
+        }
+
+        const blob = await response.blob();
+        if (state.audioObjectUrl) {
+          URL.revokeObjectURL(state.audioObjectUrl);
+        }
+
+        const url = URL.createObjectURL(blob);
+        state.audioObjectUrl = url;
+        els.audioPlayer.src = url;
+        els.downloadLink.href = url;
+        els.downloadLink.hidden = false;
+
+        const metadata = {
+          request_id: response.headers.get('x-request-id'),
+          sample_rate: response.headers.get('x-sample-rate'),
+          duration_seconds: response.headers.get('x-duration-seconds'),
+          seed: response.headers.get('x-seed'),
+        };
+
+        const compactMeta = Object.entries(metadata)
+          .filter(([, v]) => v !== null && v !== '')
+          .map(([k, v]) => `${k}: ${v}`)
+          .join('\n');
+
+        els.responseMeta.textContent = compactMeta;
+        setStatus('Generation complete.');
+      } catch (error) {
+        setStatus(error.message || 'Generation failed.', true);
+      } finally {
+        els.generateBtn.disabled = false;
+      }
+    }
+
+    els.xyGrid.addEventListener('pointerdown', (event) => {
+      state.isDragging = true;
+      els.xyGrid.setPointerCapture(event.pointerId);
+      setXYFromPointer(event.clientX, event.clientY);
+    });
+
+    els.xyGrid.addEventListener('pointermove', (event) => {
+      if (!state.isDragging) return;
+      setXYFromPointer(event.clientX, event.clientY);
+    });
+
+    els.xyGrid.addEventListener('pointerup', () => {
+      state.isDragging = false;
+    });
+
+    els.xyGrid.addEventListener('pointerleave', () => {
+      state.isDragging = false;
+    });
+
+    els.generateBtn.addEventListener('click', generateAudio);
+
+    els.randomizeSeedBtn.addEventListener('click', () => {
+      els.seed.value = String(Math.floor(Math.random() * 2147483647));
+    });
+
+    els.resetXYBtn.addEventListener('click', () => {
+      state.x = 0.1;
+      state.y = 0.0;
+      updateCursor();
+    });
+
+    updateCursor();
+  </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+Program design
+- Program Setup: HTML file - will be served by FastAPI
+- What does the program do?
+    - This software is a wrapper on Stable Audio Open.
+    - Takes 4 prompts and allows you to interpolate between them
+    - Outputs a single audio file
+- Colors
+    - Minimalist, prefer white and black and simple.
+    - Have defined boarders
+- Structure
+    - XY Grid: this is the main interaction surface: right side
+    - Left bar
+        - This will have
+        - Prompt A, B, C, D: With enterable text boxes
+        - Steps: this is total steps for diffusion
+        - CFG:
+        - Generation length
+    - Audio out
+- This is minimalist and a research demo, but should feel like an app.
+- TECH: HTML and minimal everything else - low dependency.
+- Additions
+    - Model selector dropdown

@@ -6,6 +6,8 @@ from einops import rearrange
 
 from stable_audio_tools import get_pretrained_model
 from stable_audio_tools.inference.generation import generate_diffusion_cond
+import argparse
+from pathlib import Path
 
 MODELS = {
     "small": "stabilityai/stable-audio-open-small",
@@ -19,8 +21,20 @@ class Cfg:
     steps: int = 36
     cfg: float = 5.0
     seconds_total: float = 3.0
-    t: float = 0.1
+    x: float = 0.5
+    y: float = 0.5
     seed: int = 1234
+
+    init_audio_path: str | None = None
+    init_noise_level: float = 0.0  # lower = preserve more of input audio
+
+    # Corner layout:
+    # A ---- B
+    # |      |
+    # C ---- D
+    #
+    # A = (0,0), B = (1,0), C = (0,1), D = (1,1)
+
     prompt_a: str = (
         "short synthetic bass hit, distorted midrange, punchy transient, "
         "tight tail, sound design one-shot"
@@ -31,9 +45,31 @@ class Cfg:
         "granular tail, synthetic one-shot"
     )
 
+    prompt_c: str = (
+        "short metallic percussion hit, resonant body, crisp attack, "
+        "tight decay, synthetic one-shot"
+    )
+
+    prompt_d: str = (
+        "short airy noise stab, bright textured transient, spectral tail, "
+        "abstract synthetic one-shot"
+    )
+
+def load_init_audio(path: str, device: str) -> tuple[int, torch.Tensor]:
+    audio, sr = torchaudio.load(path)  # waveform first, then sample rate
+    audio = audio.to(device)
+
+    if audio.shape[0] > 1:
+        audio = audio.mean(dim=0, keepdim=True)
+
+    return sr, audio
 
 def normalize(x: torch.Tensor, eps: float = 1e-8) -> torch.Tensor:
     return x / torch.linalg.norm(x, dim=-1, keepdim=True).clamp(min=eps)
+
+
+def clamp01(v: float) -> float:
+    return float(max(0.0, min(1.0, v)))
 
 
 def slerp(
@@ -48,7 +84,7 @@ def slerp(
     - t = 0.0 -> approximately a
     - t = 1.0 -> approximately b
     """
-    t = float(max(0.0, min(1.0, t)))
+    t = clamp01(t)
 
     a_norm = torch.linalg.norm(a, dim=-1, keepdim=True).clamp(min=eps)
     b_norm = torch.linalg.norm(b, dim=-1, keepdim=True).clamp(min=eps)
@@ -75,6 +111,22 @@ def slerp(
     return mixed_dir * mixed_norm
 
 
+def slerp_xy(
+    a: torch.Tensor,
+    b: torch.Tensor,
+    c: torch.Tensor,
+    d: torch.Tensor,
+    x: float,
+    y: float,
+) -> torch.Tensor:
+    x = clamp01(x)
+    y = clamp01(y)
+
+    bottom = slerp(a, b, x)
+    top = slerp(c, d, x) 
+    return slerp(bottom, top, y)
+
+    
 def build_metadata(cfg: Cfg, prompt: str) -> list[dict]:
     if cfg.model_name == MODELS["small"]:
         return [
@@ -92,9 +144,22 @@ def build_metadata(cfg: Cfg, prompt: str) -> list[dict]:
         }
     ]
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-x", type=float, default=0.1)
+    parser.add_argument("-y", type=float, default=0.0)
+    parser.add_argument("--init-audio", type=str, default=None)
+    parser.add_argument("--init-noise-level", type=float, default=0.35)
+    return parser.parse_args()
+
 
 def main() -> None:
     cfg = Cfg()
+    args = parse_args()
+    cfg.x = args.x
+    cfg.y = args.y
+    cfg.init_audio_path = args.init_audio
+    cfg.init_noise_level = args.init_noise_level
 
     device = (
         "mps"
@@ -116,21 +181,41 @@ def main() -> None:
 
     meta_a = build_metadata(cfg, cfg.prompt_a)
     meta_b = build_metadata(cfg, cfg.prompt_b)
+    meta_c = build_metadata(cfg, cfg.prompt_c)
+    meta_d = build_metadata(cfg, cfg.prompt_d)
+
 
     cond_a = model.conditioner(meta_a, device=device)
     cond_b = model.conditioner(meta_b, device=device)
+    cond_c = model.conditioner(meta_c, device=device)
+    cond_d = model.conditioner(meta_d, device=device)
 
     prompt_a, mask_a = cond_a["prompt"]
     prompt_b, mask_b = cond_b["prompt"]
+    prompt_c, mask_c = cond_c["prompt"]
+    prompt_d, mask_d = cond_d["prompt"]
 
-    mixed_prompt = slerp(prompt_a, prompt_b, cfg.t)
-    mixed_mask = torch.logical_or(mask_a, mask_b)
+    mixed_prompt = slerp_xy(
+        prompt_a,
+        prompt_b,
+        prompt_c,
+        prompt_d,
+        x=cfg.x,
+        y=cfg.y
+    )
+    mixed_mask = mask_a | mask_b | mask_c | mask_d
 
     # Preserve all non-prompt conditioning exactly as produced by cond_a
     mixed_cond = dict(cond_a)
     mixed_cond["prompt"] = (mixed_prompt, mixed_mask)
 
     sampler_type = "dpmpp-2m-sde" if cfg.model_name == MODELS["main"] else "pingpong"
+
+    init_audio = None
+    if cfg.init_audio_path is not None:
+        if not Path(cfg.init_audio_path).exists():
+            raise FileNotFoundError(f"init audio not found: {cfg.init_audio_path}")
+        init_audio = load_init_audio(cfg.init_audio_path, device=device)
 
     with torch.no_grad():
         output = generate_diffusion_cond(
@@ -143,22 +228,18 @@ def main() -> None:
             seed=cfg.seed,
             device=device,
             sampler_type=sampler_type,
+            init_audio=init_audio,                 # <- audio prompt / audio-to-audio
+            init_noise_level=cfg.init_noise_level # <- strength control
         )
+
 
     output = rearrange(output, "b d n -> d (b n)")
     output = output.to(torch.float32)
     output = output[:, :total_samples]
     output = output / output.abs().max().clamp(min=1e-8)
 
-    torchaudio.save("morph_output.wav", output.cpu(), sample_rate)
-    print("Saved morph_output.wav")
-
-    # Optional debug sanity checks
-    test0 = slerp(prompt_a, prompt_b, 0.0)
-    test1 = slerp(prompt_a, prompt_b, 1.0)
-    print("t=0 vs a:", (test0 - prompt_a).abs().mean().item())
-    print("t=1 vs b:", (test1 - prompt_b).abs().mean().item())
-
+    torchaudio.save("morph_output_xy.wav", output.cpu(), sample_rate)
+    print("Saved morph_output_xy.wav")
 
 if __name__ == "__main__":
     main()
