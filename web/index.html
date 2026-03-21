@@ -6,115 +6,220 @@
     <title>Morph</title>
     <style>
       :root {
-        --bg: #ffffff;
-        --fg: #111111;
-        --muted: #666666;
-        --border: #d9d9d9;
-        --panel: #fafafa;
+        --bg: #f4f1eb;
+        --surface: rgba(255, 255, 255, 0.88);
+        --surface-solid: #ffffff;
+        --fg: #171411;
+        --muted: #6d675f;
+        --border: #ded7cf;
+        --border-strong: #c8beb3;
+        --accent: #171411;
+        --success: #2f6f44;
+        --danger: #b42318;
+        --radius: 18px;
+        --shadow: 0 14px 36px rgba(23, 20, 17, 0.06);
       }
 
       * {
         box-sizing: border-box;
       }
 
+      html,
       body {
         margin: 0;
-        font-family: Arial, Helvetica, sans-serif;
-        background: var(--bg);
+        min-height: 100%;
+      }
+
+      body {
+        padding: 12px;
+        background:
+          radial-gradient(circle at top, #ffffff 0%, #f8f5f0 28%, var(--bg) 72%),
+          var(--bg);
         color: var(--fg);
+        font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
       }
 
       .app {
+        width: min(100%, 1880px);
+        max-width: 1880px;
+        min-height: calc(100vh - 24px);
+        margin: 0 auto;
         display: grid;
-        grid-template-columns: 460px 1fr;
-        min-height: 100vh;
+        grid-template-columns: minmax(440px, 520px) minmax(0, 1fr);
+        gap: 16px;
+        align-items: start;
+      }
+
+      .sidebar,
+      .pad-wrap,
+      .output {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        box-shadow: var(--shadow);
       }
 
       .sidebar {
-        border-right: 1px solid var(--border);
-        padding: 16px;
-        background: var(--panel);
-        overflow-y: auto;
+        padding: 18px;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        gap: 14px;
+        position: sticky;
+        top: 12px;
+        max-height: calc(100vh - 24px);
       }
 
       .main {
-        padding: 16px;
+        min-width: 0;
         display: grid;
-        grid-template-rows: 1fr auto;
+        grid-template-rows: minmax(0, 1fr) auto;
         gap: 16px;
+        max-height: calc(100vh - 24px);
+      }
+
+      .sidebar-head {
+        padding-bottom: 14px;
+        border-bottom: 1px solid rgba(200, 190, 179, 0.55);
+      }
+
+      .sidebar-body {
+        min-height: 0;
+        overflow-y: auto;
+        padding-right: 4px;
+      }
+
+      .sidebar-footer {
+        padding-top: 14px;
+        border-top: 1px solid rgba(200, 190, 179, 0.55);
+        background: linear-gradient(to top, rgba(244, 241, 235, 0.86), rgba(244, 241, 235, 0));
+      }
+
+      .eyebrow {
+        margin-bottom: 10px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted);
       }
 
       .title {
-        font-size: 20px;
+        margin: 0 0 8px;
+        font-size: 28px;
         font-weight: 700;
-        margin-bottom: 4px;
+        letter-spacing: -0.03em;
+        line-height: 1.02;
       }
 
       .subtitle {
-        font-size: 13px;
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.5;
         color: var(--muted);
-        margin-bottom: 16px;
       }
 
-      .section {
-        margin-bottom: 16px;
+      .section + .section {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(200, 190, 179, 0.5);
       }
 
       .section h3 {
-        font-size: 12px;
+        margin: 0 0 12px;
+        font-size: 11px;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.06em;
+        letter-spacing: 0.12em;
         color: var(--muted);
-        margin: 0 0 10px 0;
       }
 
       .field {
         margin-bottom: 12px;
       }
 
+      .field-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 6px;
+      }
+
       .field label {
         display: block;
         font-size: 12px;
         font-weight: 600;
-        margin-bottom: 6px;
       }
 
       .field input[type="text"],
       .field input[type="number"],
       .field textarea,
-      .field select,
-      .field input[type="file"] {
+      .field select {
         width: 100%;
-        padding: 10px;
+        padding: 11px 12px;
         border: 1px solid var(--border);
-        background: #fff;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.9);
         color: var(--fg);
+        font: inherit;
         font-size: 13px;
-        border-radius: 0;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
       }
 
       .field textarea {
+        min-height: 72px;
         resize: vertical;
-        min-height: 68px;
+        line-height: 1.45;
+      }
+
+      .prompt-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .prompt-grid .field {
+        margin-bottom: 0;
+      }
+
+      .generation-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .field input[type="text"]:focus,
+      .field input[type="number"]:focus,
+      .field textarea:focus,
+      .field select:focus {
+        outline: none;
+        border-color: var(--border-strong);
+        box-shadow: 0 0 0 4px rgba(23, 20, 17, 0.06);
       }
 
       .row {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .row + .row {
+        margin-top: 12px;
       }
 
       .control {
         border: 1px solid var(--border);
-        padding: 10px;
-        background: #fff;
+        border-radius: 14px;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.9);
       }
 
       .control .top {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 6px;
+        gap: 12px;
+        margin-bottom: 8px;
       }
 
       .control .name {
@@ -127,100 +232,75 @@
         color: var(--muted);
       }
 
+      .control input[type="number"] {
+        width: 100%;
+        padding: 11px 12px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.92);
+        color: var(--fg);
+        font: inherit;
+        font-size: 13px;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      }
+
+      .control input[type="number"]:focus {
+        outline: none;
+        border-color: var(--border-strong);
+        box-shadow: 0 0 0 4px rgba(23, 20, 17, 0.06);
+      }
+
       input[type="range"] {
         width: 100%;
+        accent-color: var(--accent);
       }
 
-      .pad-wrap {
-        display: grid;
-        place-items: center;
-        border: 1px solid var(--border);
-        background: #fff;
-        min-height: 620px;
-      }
-
-      .pad-box {
-        width: min(68vw, 720px);
-      }
-
-      .pad-meta {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
+      .small {
         font-size: 12px;
+        line-height: 1.45;
         color: var(--muted);
       }
 
-      .pad {
-        position: relative;
-        width: 100%;
-        aspect-ratio: 1 / 1;
-        border: 2px solid #111;
-        background:
-          linear-gradient(to right, transparent 49.8%, #e5e5e5 49.8%, #e5e5e5 50.2%, transparent 50.2%),
-          linear-gradient(to bottom, transparent 49.8%, #e5e5e5 49.8%, #e5e5e5 50.2%, transparent 50.2%);
-        cursor: crosshair;
-        user-select: none;
+      .preset-state {
+        margin-top: 8px;
       }
 
-      .corner {
-        position: absolute;
-        font-size: 12px;
-        font-weight: 700;
-        background: #fff;
-        padding: 2px 6px;
-        border: 1px solid var(--border);
-      }
-
-      .corner.a {
-        top: 8px;
-        left: 8px;
-      }
-
-      .corner.b {
-        top: 8px;
-        right: 8px;
-      }
-
-      .corner.c {
-        bottom: 8px;
-        left: 8px;
-      }
-
-      .corner.d {
-        bottom: 8px;
-        right: 8px;
-      }
-
-      .crosshair {
-        position: absolute;
-        width: 18px;
-        height: 18px;
-        border: 2px solid #111;
-        background: #fff;
-        border-radius: 50%;
-        transform: translate(-50%, -50%);
-        pointer-events: none;
+      .source-audio-state {
+        margin-top: 8px;
+        word-break: break-word;
       }
 
       .actions {
         display: flex;
+        flex-wrap: wrap;
         gap: 10px;
       }
 
       button {
-        border: 1px solid #111;
-        background: #111;
-        color: #fff;
-        padding: 10px 14px;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        background: var(--accent);
+        color: #ffffff;
+        padding: 11px 15px;
         font-size: 13px;
+        font-weight: 600;
         cursor: pointer;
+        transition: opacity 0.15s ease, transform 0.04s ease, background 0.15s ease, border-color 0.15s ease;
+      }
+
+      button:active {
+        transform: translateY(1px);
       }
 
       button.secondary {
-        background: #fff;
-        color: #111;
+        background: rgba(255, 255, 255, 0.92);
+        color: var(--fg);
+        border-color: var(--border);
+      }
+
+      button.inline {
+        padding: 6px 11px;
+        font-size: 12px;
       }
 
       button:disabled {
@@ -228,44 +308,241 @@
         cursor: not-allowed;
       }
 
-      .output {
+      .pad-wrap {
+        display: grid;
+        place-items: center;
+        min-height: 0;
+        padding: 14px 18px;
+        overflow: hidden;
+      }
+
+      .pad-box {
+        width: min(100%, 620px, calc(100vh - 250px));
+      }
+
+      .pad-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 14px;
+      }
+
+      .pad-title {
+        margin: 0 0 4px;
+        font-size: 15px;
+        font-weight: 600;
+      }
+
+      .pad-note {
+        margin: 0;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .pad-meta {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .meta-pill {
+        min-width: 84px;
+        padding: 8px 10px;
         border: 1px solid var(--border);
-        padding: 12px;
-        background: #fff;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.9);
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .meta-pill strong {
+        color: var(--fg);
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .pad {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        border: 1px solid var(--border-strong);
+        border-radius: 24px;
+        background:
+          linear-gradient(
+            to right,
+            transparent 49.85%,
+            rgba(200, 190, 179, 0.8) 49.85%,
+            rgba(200, 190, 179, 0.8) 50.15%,
+            transparent 50.15%
+          ),
+          linear-gradient(
+            to bottom,
+            transparent 49.85%,
+            rgba(200, 190, 179, 0.8) 49.85%,
+            rgba(200, 190, 179, 0.8) 50.15%,
+            transparent 50.15%
+          ),
+          linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 245, 240, 0.92));
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        cursor: crosshair;
+        user-select: none;
+        touch-action: none;
+      }
+
+      .corner {
+        position: absolute;
+        padding: 6px 10px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.94);
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--muted);
+      }
+
+      .corner.a {
+        top: 12px;
+        left: 12px;
+      }
+
+      .corner.b {
+        top: 12px;
+        right: 12px;
+      }
+
+      .corner.c {
+        bottom: 12px;
+        left: 12px;
+      }
+
+      .corner.d {
+        bottom: 12px;
+        right: 12px;
+      }
+
+      .crosshair {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.92), 0 6px 18px rgba(23, 20, 17, 0.12);
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+      }
+
+      .output {
+        display: grid;
+        align-content: start;
+        gap: 10px;
+        padding: 14px 16px;
+        max-height: 190px;
+        overflow: hidden;
+      }
+
+      .output-title {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
       }
 
       .status {
+        min-height: 0;
+        max-height: 96px;
+        margin-bottom: 0;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.84);
         font-size: 12px;
+        line-height: 1.55;
         color: var(--muted);
-        margin-bottom: 8px;
         white-space: pre-wrap;
+        overflow-y: auto;
+      }
+
+      .status[data-tone="error"] {
+        border-color: rgba(180, 35, 24, 0.24);
+        background: rgba(255, 245, 244, 0.95);
+        color: var(--danger);
+      }
+
+      .status[data-tone="success"] {
+        border-color: rgba(47, 111, 68, 0.22);
+        background: rgba(246, 251, 247, 0.95);
+        color: var(--success);
       }
 
       audio {
         width: 100%;
       }
 
-      .small {
-        font-size: 11px;
-        color: var(--muted);
-      }
+      @media (max-width: 1100px) {
+        body {
+          padding: 16px;
+        }
 
-      @media (max-width: 980px) {
         .app {
+          min-height: auto;
           grid-template-columns: 1fr;
         }
 
         .sidebar {
-          border-right: none;
-          border-bottom: 1px solid var(--border);
+          position: static;
+          max-height: none;
         }
 
-        .pad-box {
-          width: min(92vw, 720px);
+        .sidebar-head {
+          padding-bottom: 0;
+          border-bottom: none;
+        }
+
+        .sidebar-body {
+          overflow-y: visible;
+          padding-right: 0;
+        }
+
+        .main {
+          grid-template-rows: auto auto;
+          max-height: none;
         }
 
         .pad-wrap {
-          min-height: 520px;
+          min-height: auto;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .sidebar,
+        .pad-wrap,
+        .output {
+          border-radius: 16px;
+        }
+
+        .sidebar,
+        .pad-wrap {
+          padding: 16px;
+        }
+
+        .row {
+          grid-template-columns: 1fr;
+        }
+
+        .prompt-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .generation-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .pad-header {
+          flex-direction: column;
+        }
+
+        .pad {
+          border-radius: 18px;
         }
       }
     </style>
@@ -273,114 +550,151 @@
   <body>
     <div class="app">
       <aside class="sidebar">
-        <div class="title">Morph</div>
-        <div class="subtitle">Stable Audio Open prompt-space interpolation demo</div>
-
-        <div class="section">
-          <h3>Model</h3>
-          <div class="field">
-            <label for="model_name">Model</label>
-            <select id="model_name">
-              <option value="stabilityai/stable-audio-open-1.0">Stable Audio Open 1.0</option>
-              <option value="stabilityai/stable-audio-open-small">Stable Audio Open Small</option>
-            </select>
-          </div>
+        <div class="sidebar-head">
+          <div class="eyebrow">Morph</div>
+          <h1 class="title">Prompt-space audio interpolation</h1>
+          <p class="subtitle">
+            Blend four prompt anchors on the XY pad and optionally guide the render with a local
+            source audio path.
+          </p>
         </div>
 
-        <div class="section">
-          <h3>Prompts</h3>
-
-          <div class="field">
-            <label for="prompt_a">Prompt A</label>
-            <textarea id="prompt_a">short synthetic bass hit, distorted midrange, punchy transient, tight tail, sound design one-shot</textarea>
-          </div>
-
-          <div class="field">
-            <label for="prompt_b">Prompt B</label>
-            <textarea id="prompt_b">short digital glitch burst, noisy high frequency texture, sharp transient, granular tail, synthetic one-shot</textarea>
-          </div>
-
-          <div class="field">
-            <label for="prompt_c">Prompt C</label>
-            <textarea id="prompt_c">short metallic percussion hit, resonant body, crisp attack, tight decay, synthetic one-shot</textarea>
-          </div>
-
-          <div class="field">
-            <label for="prompt_d">Prompt D</label>
-            <textarea id="prompt_d">short airy noise stab, bright textured transient, spectral tail, abstract synthetic one-shot</textarea>
-          </div>
-        </div>
-
-        <div class="section">
-          <h3>Generation</h3>
-
-          <div class="row">
-            <div class="control">
-              <div class="top">
-                <div class="name">Steps</div>
-                <div class="value" id="steps_value">36</div>
+        <div class="sidebar-body">
+          <div class="section">
+            <h3>Model</h3>
+            <div class="row">
+              <div class="field">
+                <label for="model_name">Model</label>
+                <select id="model_name">
+                  <option value="stabilityai/stable-audio-open-1.0">Stable Audio Open 1.0</option>
+                  <option value="stabilityai/stable-audio-open-small">Stable Audio Open Small</option>
+                </select>
               </div>
-              <input id="steps" type="range" min="4" max="80" step="1" value="36" />
-            </div>
 
-            <div class="control">
-              <div class="top">
-                <div class="name">Prompt strength</div>
-                <div class="value" id="cfg_value">5.0</div>
+              <div class="field">
+                <label for="preset_name">Preset</label>
+                <select id="preset_name"></select>
+                <div id="preset_state" class="small preset-state">Loading presets...</div>
               </div>
-              <input id="cfg" type="range" min="0" max="10" step="0.1" value="5.0" />
             </div>
           </div>
 
-          <div class="row" style="margin-top: 10px;">
-            <div class="control">
-              <div class="top">
-                <div class="name">Length</div>
-                <div class="value" id="seconds_value">3.0s</div>
+          <div class="section">
+            <h3>Prompts</h3>
+
+            <div class="prompt-grid">
+              <div class="field">
+                <label for="prompt_a">Prompt A</label>
+                <textarea id="prompt_a">short synthetic bass hit, distorted midrange, punchy transient, tight tail, sound design one-shot</textarea>
               </div>
-              <input id="seconds_total" type="range" min="0.5" max="10" step="0.1" value="3.0" />
+
+              <div class="field">
+                <label for="prompt_b">Prompt B</label>
+                <textarea id="prompt_b">short digital glitch burst, noisy high frequency texture, sharp transient, granular tail, synthetic one-shot</textarea>
+              </div>
+
+              <div class="field">
+                <label for="prompt_c">Prompt C</label>
+                <textarea id="prompt_c">short metallic percussion hit, resonant body, crisp attack, tight decay, synthetic one-shot</textarea>
+              </div>
+
+              <div class="field">
+                <label for="prompt_d">Prompt D</label>
+                <textarea id="prompt_d">short airy noise stab, bright textured transient, spectral tail, abstract synthetic one-shot</textarea>
+              </div>
             </div>
+          </div>
+
+          <div class="section">
+            <h3>Generation</h3>
+
+            <div class="generation-grid">
+              <div class="control">
+                <div class="top">
+                  <div class="name">Steps</div>
+                  <div class="value" id="steps_value">36</div>
+                </div>
+                <input id="steps" type="range" min="4" max="80" step="1" value="36" />
+              </div>
+
+              <div class="control">
+                <div class="top">
+                  <div class="name">Prompt strength</div>
+                  <div class="value" id="cfg_value">5.0</div>
+                </div>
+                <input id="cfg" type="range" min="0" max="10" step="0.1" value="5.0" />
+              </div>
+
+              <div class="control">
+                <div class="top">
+                  <div class="name">Length</div>
+                  <div class="value" id="seconds_value">3.0s</div>
+                </div>
+                <input id="seconds_total" type="range" min="0.5" max="10" step="0.1" value="3.0" />
+              </div>
+
+              <div class="control">
+                <div class="top">
+                  <div class="name">Seed</div>
+                </div>
+                <input id="seed" type="number" value="1234" />
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <h3>Source audio</h3>
 
             <div class="field">
-              <label for="seed">Seed</label>
-              <input id="seed" type="number" value="1234" />
+              <div class="field-head">
+                <label for="init_audio_path">Source audio path</label>
+                <button id="clear_source_btn" class="secondary inline" type="button">Clear</button>
+              </div>
+              <input
+                id="init_audio_path"
+                type="text"
+                placeholder="./test_audio/example.wav"
+                spellcheck="false"
+              />
+              <div id="source_audio_state" class="small source-audio-state">
+                Optional. Use a path on the same machine running the FastAPI app.
+              </div>
+            </div>
+
+            <div class="control">
+              <div class="top">
+                <div class="name">Prompt follow</div>
+                <div class="value" id="init_noise_level_value">0.0</div>
+              </div>
+              <input id="init_noise_level" type="range" min="0" max="10" step="0.1" value="0.0" />
+              <div class="small" style="margin-top: 8px;">
+                Lower keeps more of the source audio. Higher follows the prompt more closely.
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="section">
-          <h3>Source audio</h3>
-
-          <div class="field">
-            <label for="init_audio_file">Source audio</label>
-            <input id="init_audio_file" type="file" accept=".wav,.mp3,.flac,.ogg,.m4a,audio/*" />
-            <div class="small">Optional. Upload a source audio file to guide generation.</div>
+        <div class="sidebar-footer">
+          <div class="actions">
+            <button id="generate_btn" type="button">Generate</button>
+            <button id="random_seed_btn" class="secondary" type="button">Random seed</button>
           </div>
-
-          <div class="control">
-            <div class="top">
-              <div class="name">Prompt follow</div>
-              <div class="value" id="init_noise_level_value">0.0</div>
-            </div>
-            <input id="init_noise_level" type="range" min="0" max="10" step="0.1" value="0.0" />
-            <div class="small" style="margin-top: 6px;">
-              Lower = stays closer to source audio. Higher = follows the prompt more.
-            </div>
-          </div>
-        </div>
-
-        <div class="actions">
-          <button id="generate_btn">Generate</button>
-          <button id="random_seed_btn" class="secondary">Random seed</button>
         </div>
       </aside>
 
       <main class="main">
         <div class="pad-wrap">
           <div class="pad-box">
-            <div class="pad-meta">
-              <div>X: <span id="x_value">0.50</span></div>
-              <div>Y: <span id="y_value">0.50</span></div>
+            <div class="pad-header">
+              <div>
+                <div class="pad-title">Blend position</div>
+                <p class="pad-note">Move the marker to interpolate between prompt corners A-D.</p>
+              </div>
+
+              <div class="pad-meta">
+                <div class="meta-pill">X <strong id="x_value">0.50</strong></div>
+                <div class="meta-pill">Y <strong id="y_value">0.50</strong></div>
+              </div>
             </div>
 
             <div id="pad" class="pad">
@@ -394,8 +708,9 @@
         </div>
 
         <div class="output">
-          <div id="status" class="status">Ready.</div>
-          <audio id="player" controls></audio>
+          <div class="output-title">Render</div>
+          <div id="status" class="status" data-tone="neutral">Ready.</div>
+          <audio id="player" controls preload="none"></audio>
         </div>
       </main>
     </div>
@@ -407,11 +722,29 @@
         x: 0.5,
         y: 0.5,
         dragging: false,
-        uploadedPath: null,
       };
+
+      const BUILTIN_PRESETS = {
+        synthetic_bass: {
+          prompt_a: "short synthetic bass hit, distorted midrange, punchy transient, tight tail, sound design one-shot",
+          prompt_b: "short digital glitch burst, noisy high frequency texture, sharp transient, granular tail, synthetic one-shot",
+          prompt_c: "short metallic percussion hit, resonant body, crisp attack, tight decay, synthetic one-shot",
+          prompt_d: "short airy noise stab, bright textured transient, spectral tail, abstract synthetic one-shot",
+        },
+        industrial_glitch: {
+          prompt_a: "short distorted metal impact, harsh midrange, sharp transient, tight tail, synthetic one-shot",
+          prompt_b: "short electrical crackle burst, noisy bright texture, clipped transient, glitchy tail, synthetic one-shot",
+          prompt_c: "short mechanical hit, resonant body, punchy attack, tight decay, sound design one-shot",
+          prompt_d: "short noisy spectral burst, airy texture, diffuse tail, abstract synthetic one-shot",
+        },
+      };
+
+      const DEFAULT_PRESET = "synthetic_bass";
 
       const elements = {
         model_name: $("model_name"),
+        preset_name: $("preset_name"),
+        preset_state: $("preset_state"),
         prompt_a: $("prompt_a"),
         prompt_b: $("prompt_b"),
         prompt_c: $("prompt_c"),
@@ -420,7 +753,9 @@
         cfg: $("cfg"),
         seconds_total: $("seconds_total"),
         seed: $("seed"),
-        init_audio_file: $("init_audio_file"),
+        init_audio_path: $("init_audio_path"),
+        clear_source_btn: $("clear_source_btn"),
+        source_audio_state: $("source_audio_state"),
         init_noise_level: $("init_noise_level"),
         generate_btn: $("generate_btn"),
         random_seed_btn: $("random_seed_btn"),
@@ -436,6 +771,104 @@
         init_noise_level_value: $("init_noise_level_value"),
       };
 
+      function setStatus(message, tone = "neutral") {
+        elements.status.textContent = message;
+        elements.status.dataset.tone = tone;
+      }
+
+      function formatPresetLabel(name) {
+        return name
+          .split("_")
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+          .join(" ");
+      }
+
+      function setPromptValues(prompts) {
+        elements.prompt_a.value = prompts.prompt_a;
+        elements.prompt_b.value = prompts.prompt_b;
+        elements.prompt_c.value = prompts.prompt_c;
+        elements.prompt_d.value = prompts.prompt_d;
+      }
+
+      function updatePresetState(message) {
+        elements.preset_state.textContent = message;
+      }
+
+      function getPresetNames(serverPresets = []) {
+        return [...new Set([DEFAULT_PRESET, ...Object.keys(BUILTIN_PRESETS), ...serverPresets])].sort();
+      }
+
+      function populatePresetOptions(serverPresets = []) {
+        const current = elements.preset_name.value || DEFAULT_PRESET;
+        const presetNames = getPresetNames(serverPresets);
+
+        elements.preset_name.innerHTML = "";
+        elements.preset_name.add(new Option("Custom", "custom"));
+
+        for (const presetName of presetNames) {
+          elements.preset_name.add(new Option(formatPresetLabel(presetName), presetName));
+        }
+
+        if (current === "custom" || presetNames.includes(current)) {
+          elements.preset_name.value = current;
+          return;
+        }
+
+        elements.preset_name.value = presetNames.includes(DEFAULT_PRESET) ? DEFAULT_PRESET : "custom";
+      }
+
+      function syncPresetSelection({ applyKnownPrompts = false } = {}) {
+        const presetName = elements.preset_name.value;
+
+        if (presetName === "custom") {
+          updatePresetState("Editing prompts directly.");
+          return;
+        }
+
+        const preset = BUILTIN_PRESETS[presetName];
+        if (applyKnownPrompts && preset) {
+          setPromptValues(preset);
+        }
+
+        if (preset) {
+          updatePresetState("Preset loaded. Editing any prompt switches to Custom.");
+          return;
+        }
+
+        updatePresetState("Preset will be applied on the server. Editing prompts switches to Custom.");
+      }
+
+      async function loadPresets() {
+        populatePresetOptions();
+        syncPresetSelection({ applyKnownPrompts: true });
+
+        try {
+          const res = await fetch("/presets");
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+          }
+
+          const data = await res.json();
+          const presetNames = Array.isArray(data.presets) ? data.presets : [];
+          populatePresetOptions(presetNames);
+          syncPresetSelection();
+        } catch (err) {
+          syncPresetSelection();
+          const message = err instanceof Error ? err.message : String(err);
+          updatePresetState(`${elements.preset_state.textContent} Preset list fallback active (${message}).`);
+        }
+      }
+
+      function readOptionalNumber(input) {
+        const value = input.value.trim();
+        if (value === "") {
+          return null;
+        }
+
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : null;
+      }
+
       function updateReadouts() {
         elements.x_value.textContent = state.x.toFixed(2);
         elements.y_value.textContent = state.y.toFixed(2);
@@ -445,6 +878,19 @@
         elements.init_noise_level_value.textContent = Number(elements.init_noise_level.value).toFixed(1);
       }
 
+      function updateSourceAudioState() {
+        const path = elements.init_audio_path.value.trim();
+        elements.clear_source_btn.disabled = path === "";
+
+        if (path) {
+          elements.source_audio_state.textContent = `Using local path: ${path}`;
+          return;
+        }
+
+        elements.source_audio_state.textContent =
+          "Optional. Use a path on the same machine running the FastAPI app.";
+      }
+
       function updateCrosshair() {
         const rect = elements.pad.getBoundingClientRect();
         elements.crosshair.style.left = `${state.x * rect.width}px`;
@@ -452,50 +898,37 @@
         updateReadouts();
       }
 
-      function setPadPositionFromEvent(e) {
+      function setPadPosition(clientX, clientY) {
         const rect = elements.pad.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / rect.width;
-        const y = (e.clientY - rect.top) / rect.height;
+        const x = (clientX - rect.left) / rect.width;
+        const y = (clientY - rect.top) / rect.height;
 
         state.x = Math.max(0, Math.min(1, x));
         state.y = Math.max(0, Math.min(1, y));
         updateCrosshair();
       }
 
-      async function uploadInitAudioIfNeeded() {
-        const file = elements.init_audio_file.files[0];
-        if (!file) {
-          state.uploadedPath = null;
-          return null;
+      function stopDragging(event) {
+        if (event && typeof event.pointerId === "number" && elements.pad.hasPointerCapture(event.pointerId)) {
+          elements.pad.releasePointerCapture(event.pointerId);
         }
-
-        const formData = new FormData();
-        formData.append("file", file);
-
-        elements.status.textContent = "Uploading source audio...";
-
-        const res = await fetch("/upload", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(`Upload failed: HTTP ${res.status}: ${text}`);
-        }
-
-        const data = await res.json();
-        state.uploadedPath = data.path;
-        return data.path;
+        state.dragging = false;
       }
 
       async function generate() {
+        const seed = readOptionalNumber(elements.seed);
+        const presetName = elements.preset_name.value;
+        if (elements.seed.value.trim() !== "" && seed === null) {
+          setStatus("Error: seed must be a valid number.", "error");
+          return;
+        }
+
         elements.generate_btn.disabled = true;
-        elements.status.textContent = "Generating...";
+
+        const initAudioPath = elements.init_audio_path.value.trim() || null;
+        setStatus(initAudioPath ? "Generating with source audio..." : "Generating...");
 
         try {
-          const initAudioPath = await uploadInitAudioIfNeeded();
-
           const body = {
             model_name: elements.model_name.value,
             x: state.x,
@@ -503,14 +936,19 @@
             steps: Number(elements.steps.value),
             cfg: Number(elements.cfg.value),
             seconds_total: Number(elements.seconds_total.value),
-            seed: Number(elements.seed.value),
-            prompt_a: elements.prompt_a.value,
-            prompt_b: elements.prompt_b.value,
-            prompt_c: elements.prompt_c.value,
-            prompt_d: elements.prompt_d.value,
+            seed,
             init_audio_path: initAudioPath,
             init_noise_level: Number(elements.init_noise_level.value),
           };
+
+          if (presetName === "custom") {
+            body.prompt_a = elements.prompt_a.value;
+            body.prompt_b = elements.prompt_b.value;
+            body.prompt_c = elements.prompt_c.value;
+            body.prompt_d = elements.prompt_d.value;
+          } else {
+            body.preset = presetName;
+          }
 
           const res = await fetch("/generate", {
             method: "POST",
@@ -529,35 +967,38 @@
           elements.player.src = data.audio_url;
           elements.player.load();
 
-          elements.status.textContent =
+          setStatus(
             `Done.\n` +
-            `model=${data.model_name}\n` +
-            `x=${data.x.toFixed(2)} y=${data.y.toFixed(2)}\n` +
-            `steps=${data.steps} prompt_strength=${data.cfg} seconds=${data.seconds_total} seed=${data.seed}`;
+              `model=${data.model_name}\n` +
+              `x=${data.x.toFixed(2)} y=${data.y.toFixed(2)}\n` +
+              `steps=${data.steps} prompt_strength=${data.cfg} seconds=${data.seconds_total} seed=${data.seed}\n` +
+              `preset=${presetName}\n` +
+              `source=${initAudioPath || "none"}`,
+            "success"
+          );
         } catch (err) {
-          elements.status.textContent = `Error: ${err.message}`;
+          const message = err instanceof Error ? err.message : String(err);
+          setStatus(`Error: ${message}`, "error");
         } finally {
           elements.generate_btn.disabled = false;
         }
       }
 
-      elements.pad.addEventListener("mousedown", (e) => {
+      elements.pad.addEventListener("pointerdown", (event) => {
         state.dragging = true;
-        setPadPositionFromEvent(e);
+        elements.pad.setPointerCapture(event.pointerId);
+        setPadPosition(event.clientX, event.clientY);
       });
 
-      window.addEventListener("mousemove", (e) => {
-        if (!state.dragging) return;
-        setPadPositionFromEvent(e);
+      elements.pad.addEventListener("pointermove", (event) => {
+        if (!state.dragging) {
+          return;
+        }
+        setPadPosition(event.clientX, event.clientY);
       });
 
-      window.addEventListener("mouseup", () => {
-        state.dragging = false;
-      });
-
-      elements.pad.addEventListener("click", (e) => {
-        setPadPositionFromEvent(e);
-      });
+      elements.pad.addEventListener("pointerup", stopDragging);
+      elements.pad.addEventListener("pointercancel", stopDragging);
 
       elements.generate_btn.addEventListener("click", generate);
 
@@ -565,13 +1006,41 @@
         elements.seed.value = Math.floor(Math.random() * 2147483647);
       });
 
+      elements.preset_name.addEventListener("change", () => {
+        syncPresetSelection({ applyKnownPrompts: true });
+      });
+
+      elements.clear_source_btn.addEventListener("click", () => {
+        elements.init_audio_path.value = "";
+        updateSourceAudioState();
+        setStatus("Source audio cleared.");
+      });
+
+      for (const promptInput of [
+        elements.prompt_a,
+        elements.prompt_b,
+        elements.prompt_c,
+        elements.prompt_d,
+      ]) {
+        promptInput.addEventListener("input", () => {
+          if (elements.preset_name.value !== "custom") {
+            elements.preset_name.value = "custom";
+            syncPresetSelection();
+          }
+        });
+      }
+
+      elements.init_audio_path.addEventListener("input", updateSourceAudioState);
       elements.steps.addEventListener("input", updateReadouts);
       elements.cfg.addEventListener("input", updateReadouts);
       elements.seconds_total.addEventListener("input", updateReadouts);
       elements.init_noise_level.addEventListener("input", updateReadouts);
+      window.addEventListener("resize", updateCrosshair);
 
       updateCrosshair();
       updateReadouts();
+      updateSourceAudioState();
+      loadPresets();
     </script>
   </body>
 </html>
