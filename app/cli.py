@@ -4,6 +4,7 @@ from morph.config import Config
 from morph.engine import MorphEngine
 from morph.presets import PRESETS, get_preset
 
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser("Morph cli")
 
@@ -11,7 +12,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--model",
         type=str,
         default=None,
-        help="Model name or repo id, Defaults ot Config default."
+        help="Model name or repo id, Defaults ot Config default.",
     )
     parser.add_argument("--x", type=float, default=0.5, help="X position in [0, 1]")
     parser.add_argument("--y", type=float, default=0.5, help="Y position in [0, 1]")
@@ -24,26 +25,21 @@ def build_parser() -> argparse.ArgumentParser:
         type=str,
         default=None,
         choices=sorted(PRESETS.keys()),
-        help="Optional prompt preset"
+        help="Optional prompt preset",
     )
     parser.add_argument("--prompt-a", type=str, default=None)
     parser.add_argument("--prompt-b", type=str, default=None)
     parser.add_argument("--prompt-c", type=str, default=None)
     parser.add_argument("--prompt-d", type=str, default=None)
     parser.add_argument(
-        "--init-audio",
-        type=str,
-        default=None,
-        help="Optional init audio path"
+        "--init-audio", type=str, default=None, help="Optional init audio path"
     )
     parser.add_argument(
-        "--init-noise-level",
-        type=float,
-        default=None,
-        help="Optional init noise level"
+        "--init-noise-level", type=float, default=None, help="Optional init noise level"
     )
 
     return parser
+
 
 def cfg_from_args(args: argparse.Namespace) -> Config:
     cfg = Config()
@@ -99,6 +95,7 @@ def main() -> None:
         f"model={cfg.model_name} x={cfg.x:.3f} y={cfg.y:.3f} "
         f"steps={cfg.steps} cfg={cfg.cfg} seconds={cfg.seconds_total} seed={cfg.seed}"
     )
+
 
 if __name__ == "__main__":
     main()

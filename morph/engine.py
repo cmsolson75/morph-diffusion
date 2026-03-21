@@ -17,7 +17,7 @@ from .models import get_device, get_sampler_type, load_model
 
 
 class MorphEngine:
-    def __init__(self, model_name: str | None, device: str | None = None):
+    def __init__(self, model_name: str | None = None, device: str | None = None):
         self.device = device or get_device()
         self.model_name = model_name
         self._loaded_name: str | None = None
@@ -68,7 +68,7 @@ class MorphEngine:
 
         init_audio = maybe_load_init_audio(cfg, self.device)
         sampler_type = get_sampler_type(cfg.model_name)
-        
+
         with torch.no_grad():
             output = generate_diffusion_cond(
                 self.model,

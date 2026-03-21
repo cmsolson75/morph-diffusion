@@ -2087,25 +2087,31 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "einops" },
+    { name = "fastapi" },
     { name = "huggingface-hub" },
+    { name = "pydantic" },
     { name = "ruff" },
     { name = "setuptools" },
     { name = "soundfile" },
     { name = "stable-audio-tools" },
     { name = "torchaudio" },
     { name = "torchcodec" },
+    { name = "uvicorn" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "einops", specifier = ">=0.8.2" },
+    { name = "fastapi", specifier = ">=0.135.1" },
     { name = "huggingface-hub", specifier = ">=1.7.1" },
+    { name = "pydantic", specifier = ">=2.12.5" },
     { name = "ruff", specifier = ">=0.15.6" },
     { name = "setuptools", specifier = "<81" },
     { name = "soundfile", specifier = ">=0.13.1" },
     { name = "stable-audio-tools", specifier = ">=0.0.19" },
     { name = "torchaudio", specifier = ">=2.10.0" },
     { name = "torchcodec", specifier = ">=0.10.0" },
+    { name = "uvicorn", specifier = ">=0.42.0" },
 ]
 
 [[package]]

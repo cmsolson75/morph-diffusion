@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Morph</title>
+    <style>
+      :root {
+        --bg: #ffffff;
+        --fg: #111111;
+        --muted: #666666;
+        --border: #d9d9d9;
+        --panel: #fafafa;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: var(--bg);
+        color: var(--fg);
+      }
+
+      .app {
+        display: grid;
+        grid-template-columns: 460px 1fr;
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        border-right: 1px solid var(--border);
+        padding: 16px;
+        background: var(--panel);
+        overflow-y: auto;
+      }
+
+      .main {
+        padding: 16px;
+        display: grid;
+        grid-template-rows: 1fr auto;
+        gap: 16px;
+      }
+
+      .title {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+
+      .subtitle {
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 16px;
+      }
+
+      .section {
+        margin-bottom: 16px;
+      }
+
+      .section h3 {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        margin: 0 0 10px 0;
+      }
+
+      .field {
+        margin-bottom: 12px;
+      }
+
+      .field label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+
+      .field input[type="text"],
+      .field input[type="number"],
+      .field textarea,
+      .field select,
+      .field input[type="file"] {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid var(--border);
+        background: #fff;
+        color: var(--fg);
+        font-size: 13px;
+        border-radius: 0;
+      }
+
+      .field textarea {
+        resize: vertical;
+        min-height: 68px;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .control {
+        border: 1px solid var(--border);
+        padding: 10px;
+        background: #fff;
+      }
+
+      .control .top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+      }
+
+      .control .name {
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .control .value {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      input[type="range"] {
+        width: 100%;
+      }
+
+      .pad-wrap {
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--border);
+        background: #fff;
+        min-height: 620px;
+      }
+
+      .pad-box {
+        width: min(68vw, 720px);
+      }
+
+      .pad-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .pad {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        border: 2px solid #111;
+        background:
+          linear-gradient(to right, transparent 49.8%, #e5e5e5 49.8%, #e5e5e5 50.2%, transparent 50.2%),
+          linear-gradient(to bottom, transparent 49.8%, #e5e5e5 49.8%, #e5e5e5 50.2%, transparent 50.2%);
+        cursor: crosshair;
+        user-select: none;
+      }
+
+      .corner {
+        position: absolute;
+        font-size: 12px;
+        font-weight: 700;
+        background: #fff;
+        padding: 2px 6px;
+        border: 1px solid var(--border);
+      }
+
+      .corner.a {
+        top: 8px;
+        left: 8px;
+      }
+
+      .corner.b {
+        top: 8px;
+        right: 8px;
+      }
+
+      .corner.c {
+        bottom: 8px;
+        left: 8px;
+      }
+
+      .corner.d {
+        bottom: 8px;
+        right: 8px;
+      }
+
+      .crosshair {
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        border: 2px solid #111;
+        background: #fff;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      button {
+        border: 1px solid #111;
+        background: #111;
+        color: #fff;
+        padding: 10px 14px;
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      button.secondary {
+        background: #fff;
+        color: #111;
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .output {
+        border: 1px solid var(--border);
+        padding: 12px;
+        background: #fff;
+      }
+
+      .status {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 8px;
+        white-space: pre-wrap;
+      }
+
+      audio {
+        width: 100%;
+      }
+
+      .small {
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      @media (max-width: 980px) {
+        .app {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          border-right: none;
+          border-bottom: 1px solid var(--border);
+        }
+
+        .pad-box {
+          width: min(92vw, 720px);
+        }
+
+        .pad-wrap {
+          min-height: 520px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="title">Morph</div>
+        <div class="subtitle">Stable Audio Open prompt-space interpolation demo</div>
+
+        <div class="section">
+          <h3>Model</h3>
+          <div class="field">
+            <label for="model_name">Model</label>
+            <select id="model_name">
+              <option value="stabilityai/stable-audio-open-1.0">Stable Audio Open 1.0</option>
+              <option value="stabilityai/stable-audio-open-small">Stable Audio Open Small</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Prompts</h3>
+
+          <div class="field">
+            <label for="prompt_a">Prompt A</label>
+            <textarea id="prompt_a">short synthetic bass hit, distorted midrange, punchy transient, tight tail, sound design one-shot</textarea>
+          </div>
+
+          <div class="field">
+            <label for="prompt_b">Prompt B</label>
+            <textarea id="prompt_b">short digital glitch burst, noisy high frequency texture, sharp transient, granular tail, synthetic one-shot</textarea>
+          </div>
+
+          <div class="field">
+            <label for="prompt_c">Prompt C</label>
+            <textarea id="prompt_c">short metallic percussion hit, resonant body, crisp attack, tight decay, synthetic one-shot</textarea>
+          </div>
+
+          <div class="field">
+            <label for="prompt_d">Prompt D</label>
+            <textarea id="prompt_d">short airy noise stab, bright textured transient, spectral tail, abstract synthetic one-shot</textarea>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Generation</h3>
+
+          <div class="row">
+            <div class="control">
+              <div class="top">
+                <div class="name">Steps</div>
+                <div class="value" id="steps_value">36</div>
+              </div>
+              <input id="steps" type="range" min="4" max="80" step="1" value="36" />
+            </div>
+
+            <div class="control">
+              <div class="top">
+                <div class="name">Prompt strength</div>
+                <div class="value" id="cfg_value">5.0</div>
+              </div>
+              <input id="cfg" type="range" min="0" max="10" step="0.1" value="5.0" />
+            </div>
+          </div>
+
+          <div class="row" style="margin-top: 10px;">
+            <div class="control">
+              <div class="top">
+                <div class="name">Length</div>
+                <div class="value" id="seconds_value">3.0s</div>
+              </div>
+              <input id="seconds_total" type="range" min="0.5" max="10" step="0.1" value="3.0" />
+            </div>
+
+            <div class="field">
+              <label for="seed">Seed</label>
+              <input id="seed" type="number" value="1234" />
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Source audio</h3>
+
+          <div class="field">
+            <label for="init_audio_file">Source audio</label>
+            <input id="init_audio_file" type="file" accept=".wav,.mp3,.flac,.ogg,.m4a,audio/*" />
+            <div class="small">Optional. Upload a source audio file to guide generation.</div>
+          </div>
+
+          <div class="control">
+            <div class="top">
+              <div class="name">Prompt follow</div>
+              <div class="value" id="init_noise_level_value">0.0</div>
+            </div>
+            <input id="init_noise_level" type="range" min="0" max="10" step="0.1" value="0.0" />
+            <div class="small" style="margin-top: 6px;">
+              Lower = stays closer to source audio. Higher = follows the prompt more.
+            </div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="generate_btn">Generate</button>
+          <button id="random_seed_btn" class="secondary">Random seed</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="pad-wrap">
+          <div class="pad-box">
+            <div class="pad-meta">
+              <div>X: <span id="x_value">0.50</span></div>
+              <div>Y: <span id="y_value">0.50</span></div>
+            </div>
+
+            <div id="pad" class="pad">
+              <div class="corner a">A</div>
+              <div class="corner b">B</div>
+              <div class="corner c">C</div>
+              <div class="corner d">D</div>
+              <div id="crosshair" class="crosshair"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="output">
+          <div id="status" class="status">Ready.</div>
+          <audio id="player" controls></audio>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+
+      const state = {
+        x: 0.5,
+        y: 0.5,
+        dragging: false,
+        uploadedPath: null,
+      };
+
+      const elements = {
+        model_name: $("model_name"),
+        prompt_a: $("prompt_a"),
+        prompt_b: $("prompt_b"),
+        prompt_c: $("prompt_c"),
+        prompt_d: $("prompt_d"),
+        steps: $("steps"),
+        cfg: $("cfg"),
+        seconds_total: $("seconds_total"),
+        seed: $("seed"),
+        init_audio_file: $("init_audio_file"),
+        init_noise_level: $("init_noise_level"),
+        generate_btn: $("generate_btn"),
+        random_seed_btn: $("random_seed_btn"),
+        status: $("status"),
+        player: $("player"),
+        pad: $("pad"),
+        crosshair: $("crosshair"),
+        x_value: $("x_value"),
+        y_value: $("y_value"),
+        steps_value: $("steps_value"),
+        cfg_value: $("cfg_value"),
+        seconds_value: $("seconds_value"),
+        init_noise_level_value: $("init_noise_level_value"),
+      };
+
+      function updateReadouts() {
+        elements.x_value.textContent = state.x.toFixed(2);
+        elements.y_value.textContent = state.y.toFixed(2);
+        elements.steps_value.textContent = elements.steps.value;
+        elements.cfg_value.textContent = Number(elements.cfg.value).toFixed(1);
+        elements.seconds_value.textContent = `${Number(elements.seconds_total.value).toFixed(1)}s`;
+        elements.init_noise_level_value.textContent = Number(elements.init_noise_level.value).toFixed(1);
+      }
+
+      function updateCrosshair() {
+        const rect = elements.pad.getBoundingClientRect();
+        elements.crosshair.style.left = `${state.x * rect.width}px`;
+        elements.crosshair.style.top = `${state.y * rect.height}px`;
+        updateReadouts();
+      }
+
+      function setPadPositionFromEvent(e) {
+        const rect = elements.pad.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width;
+        const y = (e.clientY - rect.top) / rect.height;
+
+        state.x = Math.max(0, Math.min(1, x));
+        state.y = Math.max(0, Math.min(1, y));
+        updateCrosshair();
+      }
+
+      async function uploadInitAudioIfNeeded() {
+        const file = elements.init_audio_file.files[0];
+        if (!file) {
+          state.uploadedPath = null;
+          return null;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        elements.status.textContent = "Uploading source audio...";
+
+        const res = await fetch("/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`Upload failed: HTTP ${res.status}: ${text}`);
+        }
+
+        const data = await res.json();
+        state.uploadedPath = data.path;
+        return data.path;
+      }
+
+      async function generate() {
+        elements.generate_btn.disabled = true;
+        elements.status.textContent = "Generating...";
+
+        try {
+          const initAudioPath = await uploadInitAudioIfNeeded();
+
+          const body = {
+            model_name: elements.model_name.value,
+            x: state.x,
+            y: state.y,
+            steps: Number(elements.steps.value),
+            cfg: Number(elements.cfg.value),
+            seconds_total: Number(elements.seconds_total.value),
+            seed: Number(elements.seed.value),
+            prompt_a: elements.prompt_a.value,
+            prompt_b: elements.prompt_b.value,
+            prompt_c: elements.prompt_c.value,
+            prompt_d: elements.prompt_d.value,
+            init_audio_path: initAudioPath,
+            init_noise_level: Number(elements.init_noise_level.value),
+          };
+
+          const res = await fetch("/generate", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+          });
+
+          if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`HTTP ${res.status}: ${text}`);
+          }
+
+          const data = await res.json();
+          elements.player.src = data.audio_url;
+          elements.player.load();
+
+          elements.status.textContent =
+            `Done.\n` +
+            `model=${data.model_name}\n` +
+            `x=${data.x.toFixed(2)} y=${data.y.toFixed(2)}\n` +
+            `steps=${data.steps} prompt_strength=${data.cfg} seconds=${data.seconds_total} seed=${data.seed}`;
+        } catch (err) {
+          elements.status.textContent = `Error: ${err.message}`;
+        } finally {
+          elements.generate_btn.disabled = false;
+        }
+      }
+
+      elements.pad.addEventListener("mousedown", (e) => {
+        state.dragging = true;
+        setPadPositionFromEvent(e);
+      });
+
+      window.addEventListener("mousemove", (e) => {
+        if (!state.dragging) return;
+        setPadPositionFromEvent(e);
+      });
+
+      window.addEventListener("mouseup", () => {
+        state.dragging = false;
+      });
+
+      elements.pad.addEventListener("click", (e) => {
+        setPadPositionFromEvent(e);
+      });
+
+      elements.generate_btn.addEventListener("click", generate);
+
+      elements.random_seed_btn.addEventListener("click", () => {
+        elements.seed.value = Math.floor(Math.random() * 2147483647);
+      });
+
+      elements.steps.addEventListener("input", updateReadouts);
+      elements.cfg.addEventListener("input", updateReadouts);
+      elements.seconds_total.addEventListener("input", updateReadouts);
+      elements.init_noise_level.addEventListener("input", updateReadouts);
+
+      updateCrosshair();
+      updateReadouts();
+    </script>
+  </body>
+</html>
