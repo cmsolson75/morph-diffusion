@@ -1,0 +1,3 @@
+- Remove stable audio small from the model list - its poluting the system and does not sound good.
+- Fine tune model using new dataset
+- Add in negative prompting: intresting control direction
