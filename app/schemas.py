@@ -1,6 +1,15 @@
 from pydantic import BaseModel, Field
 
 
+class ModelOption(BaseModel):
+    id: str
+    label: str
+
+
+class ModelsResponse(BaseModel):
+    models: list[ModelOption]
+
+
 class GenerateRequest(BaseModel):
     model_name: str | None = None
     x: float = Field(default=0.5, ge=0.0, le=1.0)

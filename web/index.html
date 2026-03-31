@@ -567,7 +567,6 @@
                 <label for="model_name">Model</label>
                 <select id="model_name">
                   <option value="stabilityai/stable-audio-open-1.0">Stable Audio Open 1.0</option>
-                  <option value="stabilityai/stable-audio-open-small">Stable Audio Open Small</option>
                 </select>
               </div>
 
@@ -614,15 +613,15 @@
                   <div class="name">Steps</div>
                   <div class="value" id="steps_value">36</div>
                 </div>
-                <input id="steps" type="range" min="4" max="80" step="1" value="36" />
+                <input id="steps" type="range" min="2" max="100" step="1" value="36" />
               </div>
 
               <div class="control">
                 <div class="top">
                   <div class="name">Prompt strength</div>
-                  <div class="value" id="cfg_value">5.0</div>
+                  <div class="value" id="cfg_value">7.0</div>
                 </div>
-                <input id="cfg" type="range" min="0" max="10" step="0.1" value="5.0" />
+                <input id="cfg" type="range" min="0" max="15" step="0.1" value="7.0" />
               </div>
 
               <div class="control">
@@ -724,6 +723,13 @@
         dragging: false,
       };
 
+      const BUILTIN_MODELS = [
+        {
+          id: "stabilityai/stable-audio-open-1.0",
+          label: "Stable Audio Open 1.0",
+        },
+      ];
+
       const BUILTIN_PRESETS = {
         synthetic_bass: {
           prompt_a: "short synthetic bass hit, distorted midrange, punchy transient, tight tail, sound design one-shot",
@@ -739,6 +745,7 @@
         },
       };
 
+      const DEFAULT_MODEL_NAME = BUILTIN_MODELS[0].id;
       const DEFAULT_PRESET = "synthetic_bass";
 
       const elements = {
@@ -774,6 +781,49 @@
       function setStatus(message, tone = "neutral") {
         elements.status.textContent = message;
         elements.status.dataset.tone = tone;
+      }
+
+      function populateModelOptions(models = BUILTIN_MODELS) {
+        const current = elements.model_name.value || DEFAULT_MODEL_NAME;
+        const availableModels = models.length > 0 ? models : BUILTIN_MODELS;
+        const modelIds = availableModels.map((model) => model.id);
+
+        elements.model_name.innerHTML = "";
+
+        for (const model of availableModels) {
+          elements.model_name.add(new Option(model.label, model.id));
+        }
+
+        if (modelIds.includes(current)) {
+          elements.model_name.value = current;
+          return;
+        }
+
+        elements.model_name.value = modelIds.includes(DEFAULT_MODEL_NAME)
+          ? DEFAULT_MODEL_NAME
+          : modelIds[0];
+      }
+
+      async function loadModels() {
+        populateModelOptions();
+
+        try {
+          const res = await fetch("/models");
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+          }
+
+          const data = await res.json();
+          const models = Array.isArray(data.models)
+            ? data.models.filter((model) => model && typeof model.id === "string" && typeof model.label === "string")
+            : [];
+
+          if (models.length > 0) {
+            populateModelOptions(models);
+          }
+        } catch (_) {
+          populateModelOptions();
+        }
       }
 
       function formatPresetLabel(name) {
@@ -1040,6 +1090,7 @@
       updateCrosshair();
       updateReadouts();
       updateSourceAudioState();
+      loadModels();
       loadPresets();
     </script>
   </body>

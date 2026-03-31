@@ -7,19 +7,11 @@ import torch
 import torchaudio
 from stable_audio_tools.models.diffusion import ConditionedDiffusionModelWrapper
 
-from .config import Config, MODELS
+from .config import Config
 from .interpolate import slerp_xy
 
 
 def build_metadata(cfg: Config, prompt: str) -> list[dict]:
-    if cfg.model_name == MODELS["small"]:
-        return [
-            {
-                "prompt": prompt,
-                "seconds_total": cfg.seconds_total,
-            }
-        ]
-
     return [
         {
             "prompt": prompt,

@@ -1,0 +1,5 @@
+- Add tests
+- Clean up PRESETS!
+    - Work with Noel on this, need to have them sound good in the middle and on edges.
+- Fine tune model using new dataset
+- make presets JSON driven so they are easy to compose.

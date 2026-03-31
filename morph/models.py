@@ -5,8 +5,6 @@ from stable_audio_tools import get_pretrained_model
 from stable_audio_tools.models.diffusion import ConditionedDiffusionModelWrapper
 from typing import Tuple
 
-from .config import MODELS
-
 
 def get_device() -> str:
     if torch.backends.mps.is_available():
@@ -30,5 +28,5 @@ def load_model(
     return model, model_config
 
 
-def get_sampler_type(model_name: str) -> str:
-    return "dpmpp-2m-sde" if model_name == MODELS["main"] else "pingpong"
+def get_sampler_type(_model_name: str) -> str:
+    return "dpmpp-2m-sde"

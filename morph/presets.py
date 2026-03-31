@@ -10,12 +10,10 @@ PRESETS = {
             "granular tail, synthetic one-shot"
         ),
         "prompt_c": (
-            "short metallic percussion hit, resonant body, crisp attack, "
-            "tight decay, synthetic one-shot"
+            "wobble bass one-shot, low frequency oscillation, saturated midrange, aggressive resonance, dubstep growl, metallic formant"
         ),
         "prompt_d": (
-            "short airy noise stab, bright textured transient, spectral tail, "
-            "abstract synthetic one-shot"
+            "dark reese bass pad, detuned saw drones, slowly phasing sub frequencies, ominous dubstep atmosphere, deep stereo movement, brooding tension"
         ),
     },
     "industrial_glitch": {

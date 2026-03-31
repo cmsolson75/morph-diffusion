@@ -12,7 +12,7 @@ from .conditioning import (
     maybe_load_init_audio,
     mix_anchor_conditioning,
 )
-from .config import Config
+from .config import Config, is_supported_model
 from .models import get_device, get_sampler_type, load_model
 
 
@@ -27,6 +27,8 @@ class MorphEngine:
     def _ensure_model(self, model_name: str):
         if self.model is not None and self._loaded_name == model_name:
             return
+        if not is_supported_model(model_name):
+            raise ValueError(f"Unsupported model: {model_name}")
         self.model, self.model_config = load_model(model_name, self.device)
         self._loaded_name = model_name
 

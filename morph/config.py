@@ -1,14 +1,33 @@
 from dataclasses import dataclass
 
-MODELS = {
-    "small": "stabilityai/stable-audio-open-small",
-    "main": "stabilityai/stable-audio-open-1.0",
-}
+
+@dataclass(frozen=True)
+class ModelOption:
+    id: str
+    label: str
+
+
+AVAILABLE_MODELS: tuple[ModelOption, ...] = (
+    ModelOption(
+        id="stabilityai/stable-audio-open-1.0",
+        label="Stable Audio Open 1.0",
+    ),
+)
+
+DEFAULT_MODEL_NAME = AVAILABLE_MODELS[0].id
+
+
+def get_available_models() -> list[dict[str, str]]:
+    return [{"id": model.id, "label": model.label} for model in AVAILABLE_MODELS]
+
+
+def is_supported_model(model_name: str) -> bool:
+    return any(model.id == model_name for model in AVAILABLE_MODELS)
 
 
 @dataclass
 class Config:
-    model_name: str = MODELS["main"]
+    model_name: str = DEFAULT_MODEL_NAME
     steps: int = 36
     cfg: float = 5.0
     seconds_total: float = 3.0

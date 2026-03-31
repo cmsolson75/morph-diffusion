@@ -3,12 +3,12 @@ from pathlib import Path
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import FileResponse
 
-from morph.config import Config
+from morph.config import Config, get_available_models, is_supported_model
 from morph.engine import MorphEngine
 from morph.presets import PRESETS, get_preset
 
 
-from .schemas import GenerateRequest, GenerateResponse
+from .schemas import GenerateRequest, GenerateResponse, ModelsResponse
 
 router = APIRouter()
 
@@ -17,6 +17,8 @@ def cfg_from_request(req: GenerateRequest) -> Config:
     cfg = Config()
 
     if req.model_name is not None:
+        if not is_supported_model(req.model_name):
+            raise HTTPException(status_code=400, detail=f"Unsupported model: {req.model_name}")
         cfg.model_name = req.model_name
     if req.steps is not None:
         cfg.steps = req.steps
@@ -63,8 +65,14 @@ async def health(request: Request) -> dict:
         "status": "ok",
         "device": engine.device,
         "loaded_model": engine._loaded_name,
+        "available_models": get_available_models(),
         "available_presets": sorted(PRESETS.keys()),
     }
+
+
+@router.get("/models", response_model=ModelsResponse)
+async def models() -> ModelsResponse:
+    return ModelsResponse(models=get_available_models())
 
 
 @router.get("/presets")
